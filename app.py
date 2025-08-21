@@ -1,7 +1,18 @@
 from flask import Flask, request
+from models import db, Course, Student, Enrollment
 
 #..Create a Flask aplication instance
 app = Flask(__name__)
+
+# Setup DB resources
+app.config["SQLALCHEMY_DATABASE_URI"] = ""
+app.config["SQLALCHEMY_TRACKMODIFICATIONS"] = False 
+db.init_app(app) #Initialize sqlalchemy with your flask app
+
+with app.app_context():
+    db.create_all()  # create all non-existent table
+
+#CREATE Student
 
 @app.route('/')
 def index():
@@ -22,6 +33,7 @@ def course_details(course_id):
 @app.route('/courses/<course_id>')
 def course_name(course_id):
     return f"This is course: {course_id}"
+
 # Path parameters
 # @app.route('/courses/<path:course_file>')
 # def course_file(course_file):
