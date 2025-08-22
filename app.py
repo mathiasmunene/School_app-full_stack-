@@ -1,18 +1,43 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify, send_from_directory
+from flask_sqlalchemy import SQLAlchemy
 from models import db, Course, Student, Enrollment
 
 #..Create a Flask aplication instance
 app = Flask(__name__)
 
 # Setup DB resources
-app.config["SQLALCHEMY_DATABASE_URI"] = ""
-app.config["SQLALCHEMY_TRACKMODIFICATIONS"] = False 
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///schools.db"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False 
 db.init_app(app) #Initialize sqlalchemy with your flask app
+
+
+# Initialize SQLAlchemy first
+# db = SQLAlchemy(app)
 
 with app.app_context():
     db.create_all()  # create all non-existent table
 
+# Import models AFTER creating db instance
+
+
 #CREATE Student
+@app.route('/student', methods=["POST"])
+def create_student():
+    data = request.get_json()
+    name=data["name"]
+    age=data["age"]
+    student=Student(full_name=name, age=age)
+    db.session.add(student)
+    db.session.commit()
+    return jsonify(student.to_dict()), 201
+
+# Read all users
+@app.route('/students', methods=["GET"])
+def get_students():
+    students = Student.query.all()
+    students_data = [student.to_dict() for student in students]
+    return jsonify(students_data), 200
+
 
 @app.route('/')
 def index():
@@ -30,9 +55,9 @@ def about():
 def course_details(course_id):
     return f"This is course: {course_id}"
 
-@app.route('/courses/<course_id>')
-def course_name(course_id):
-    return f"This is course: {course_id}"
+# @app.route('/courses/<course_id>')
+# def course_name(course_id):
+#     return f"This is course: {course_id}"
 
 # Path parameters
 # @app.route('/courses/<path:course_file>')
