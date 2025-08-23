@@ -21,7 +21,7 @@ with app.app_context():
 
 
 #CREATE Student
-@app.route('/student', methods=["POST"])
+@app.route('/students', methods=["POST"])
 def create_student():
     data = request.get_json()
     name=data["name"]
@@ -38,14 +38,58 @@ def get_students():
     students_data = [student.to_dict() for student in students]
     return jsonify(students_data), 200
 
+# Update all
+@app.route('/students/<int:id>',  methods = ["PUT", "PATCH"])
+def edit_student(id):
+    student = Student.query.get_or_404 (id)
+    data = request.get_json()
+    student.full_name = data.get ("name", student.full_name)
+    student.age = data.get ("age", student.age)
+    db.session.commit()
+    return jsonify(student.to_dict()), 200
+
+# Delete
+@app.route('/students/<int:id>', methods = ["DELETE"])
+def delete_student(id):
+    student = Student.query.get_or_404 (id)
+    db.session.delete(student)
+    db.session.commit()
+    return jsonify({"message": f"Deleted student with id {id} successfully"}), 200
+
+# Create course
+@app.route('/courses', methods = ["POST"])
+def create_course():
+    data = request.get_json()
+    name = data["name"]
+    price = data["price"]
+    course = Course(name=name,price=price)
+    db.session.add(course)
+    db.session.commit()
+    return jsonify (course.to_dict()), 201
+
+# Enrollment
+@app.route('/enrollment', methods = ["POST"])
+def enroll_stent():
+    data = request.get_json()
+    student_id = data["student_id"]
+    course_id = data["course_id"]
+
+    Course.query.get_or_404(course_id)
+    Student.query.get_or_404(student_id)
+
+    enrollment = Enrollment(course_id=course_id, student_id=student_id)
+
+    db.session.add(enrollment)
+    db.session.commit()
+    return jsonify(enrollment.to_dict()), 201
 
 @app.route('/')
 def index():
     return "<p>Hello World</p>"
 
-@app.route('/courses')
-def courses():
-    return "This is the courses page"
+# @app.route('/courses')
+# def courses():
+#     return "This is the courses page"
 
 @app.route('/about')
 def about():
