@@ -1,27 +1,30 @@
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy_serializer import SerializerMixin
 
 db = SQLAlchemy()
 
-class Student(db.Model):
+class Student(db.Model, SerializerMixin):
     __tablename__ = "students"
     id = db.Column(db.Integer, primary_key=True)
     full_name = db.Column(db.String(200), nullable=False)
     age  = db.Column(db.Integer, nullable=False)
+    email = db.Column(db.String(200),default=f"{id}@sample.com", nullable = False, unique=True)
+    reg_code = db.Column(db.String(200), nullable=False, unique=True)
 
     enrollments = db.relationship("Enrollment", back_populates='student', cascade ="all, delete-orphan")
 
-    def to_dict(self):
-        return{
-            "id":self.id,
-            "full_name": self.full_name,
-            "age": self.age,
-            "enrollments": [e.course.dict_short() for e in self.enrollments]
-        }
-    def short_dict(self):  # ADD THIS METHOD
+    # def to_dict(self):
+    #     return{
+    #         "id":self.id,
+    #         "full_name": self.full_name,
+    #         "age": self.age,
+    #         "email": self.email,
+    #         "enrollments": [e.course.dict_short() for e in self.enrollments]
+    #     }
+    def dict_short(self):  # ADD THIS METHOD
         return {
             "id": self.id,
-            "full_name": self.full_name,
-            "age": self.age
+            "name": self.full_name,
         }
     
 
@@ -60,5 +63,13 @@ class Enrollment(db.Model):
         return {
             "id":self.id,
             "course":self.course.dict_short(),
-            "student":self.student.to_dict()
+            "student":self.student.dict_short()
         }
+
+
+class BoardingHouse(db.Model):
+    __tablename__ = "boarding_houses"
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(20), nullable = False)
+    mascot = db.Column(db.String(20), nullable = False)

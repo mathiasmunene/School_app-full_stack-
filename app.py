@@ -1,6 +1,8 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, make_response
 from flask_sqlalchemy import SQLAlchemy
-from models import db, Course, Student, Enrollment
+from models import db, Course, Student, Enrollment, BoardingHouse
+from flask_migrate import Migrate
+
 
 #..Create a Flask aplication instance
 app = Flask(__name__)
@@ -9,13 +11,13 @@ app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///schools.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False 
 db.init_app(app) #Initialize sqlalchemy with your flask app
-
+migrate = Migrate(app, db)
 
 # Initialize SQLAlchemy first
 # db = SQLAlchemy(app)
 
-with app.app_context():
-    db.create_all()  # create all non-existent table
+# with app.app_context():
+#     db.create_all()  # create all non-existent table
 
 # Import models AFTER creating db instance
 
@@ -26,10 +28,16 @@ def create_student():
     data = request.get_json()
     name=data["name"]
     age=data["age"]
-    student=Student(full_name=name, age=age)
+    email=data["email"]
+    reg_code = data["reg_code"]
+    student=Student(full_name=name, age=age, email=email, reg_code=reg_code)
     db.session.add(student)
     db.session.commit()
-    return jsonify(student.to_dict()), 201
+
+    response = make_response(student.to_dict(), 201)
+    response.headers["SchoollHeader"] = "FaskSchool"
+
+    return response
 
 # Read all users
 @app.route('/students', methods=["GET"])
@@ -82,6 +90,15 @@ def enroll_stent():
     db.session.add(enrollment)
     db.session.commit()
     return jsonify(enrollment.to_dict()), 201
+
+# TODO; Implement all CRUD operations for Course and Enrollment models
+
+# Readd all boarding houses
+@app.route('/houses', methods = ["GET"])
+def get_houses():
+    houses = BoardingHouse.query.all()
+    houses_data = [h.to.dict() for h in houses]
+    return jsonify(houses_data), 200
 
 @app.route('/')
 def index():
