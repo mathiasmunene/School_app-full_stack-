@@ -2,6 +2,8 @@ from flask import Flask, request, jsonify, send_from_directory, make_response
 from flask_sqlalchemy import SQLAlchemy
 from models import db, Course, Student, Enrollment, BoardingHouse
 from flask_migrate import Migrate
+import requests
+import uuid
 
 
 #..Create a Flask aplication instance
@@ -23,6 +25,30 @@ migrate = Migrate(app, db)
 
 RANDOM_USER_API = "https://randomuser.me/api/"
 
+# create students
+@app.route('/students/random', methods=["POST"])
+def create_random_student():
+    response = requests.get(url=RANDOM_USER_API)
+    random_user = response.json()["results"][0]
+
+    name_details = random_user["name"]
+    full_name = f'{name_details["title"]}, {name_details["first"]}, {name_details["last"]}'
+
+    dob = random_user["dob"]
+    age = dob["age"]
+
+    email = random_user["email"]
+
+    # Generate a unique registration code for the random student
+    import uuid
+    reg_code = str(uuid.uuid4())  # Generate a unique UUID   
+
+    student = Student(full_name=full_name, age=age, email=email, reg_code=reg_code)
+    db.session.add(student)
+    db.session.commit()
+
+    print(f"Class {type(random_user)}")
+    return make_response(student.to_dict(), 200)
 
 #CREATE Student
 @app.route('/students', methods=["POST"])
@@ -144,4 +170,4 @@ def course_detail():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=3000)
+    app.run(debug=True, host="0.0.0.0", port=5000)
