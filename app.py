@@ -21,6 +21,8 @@ migrate = Migrate(app, db)
 
 # Import models AFTER creating db instance
 
+RANDOM_USER_API = "https://randomuser.me/api/"
+
 
 #CREATE Student
 @app.route('/students', methods=["POST"])
@@ -35,7 +37,7 @@ def create_student():
     db.session.commit()
 
     response = make_response(student.to_dict(), 201)
-    response.headers["SchoollHeader"] = "FaskSchool"
+    response.headers["SchoolHeader"] = "FaskSchool"
 
     return response
 
