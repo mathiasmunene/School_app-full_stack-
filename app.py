@@ -4,6 +4,10 @@ from models import db, Course, Student, Enrollment, BoardingHouse
 from flask_migrate import Migrate
 import requests
 import uuid
+from flask_cors import CORS
+
+app = Flask(__name__)
+CORS(app)
 
 
 #..Create a Flask aplication instance
@@ -58,7 +62,8 @@ def create_student():
     age=data["age"]
     email=data["email"]
     reg_code = data["reg_code"]
-    student=Student(full_name=name, age=age, email=email, reg_code=reg_code)
+    bio=data["bio"]
+    student=Student(full_name=name, age=age, email=email, reg_code=reg_code, bio=bio)
     db.session.add(student)
     db.session.commit()
 

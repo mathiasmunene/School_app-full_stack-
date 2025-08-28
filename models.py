@@ -1,5 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy_serializer import SerializerMixin
+from sqlalchemy.orm import validates
 
 db = SQLAlchemy()
 
@@ -11,6 +12,7 @@ class Student(db.Model, SerializerMixin):
     email = db.Column(db.String(200),default=f"{id}@sample.com", nullable = False, unique=True)
     reg_code = db.Column(db.String(200), nullable=True, unique=False)
     boarding_house = db.Column(db.Integer, db.ForeignKey("boarding_houses.id"), nullable = True)
+    bio = db.Column(db.String, nullable = True)
 
     enrollments = db.relationship("Enrollment", back_populates='student', cascade ="all, delete-orphan")
 
@@ -31,6 +33,19 @@ class Student(db.Model, SerializerMixin):
             "name": self.full_name,
         }
     
+    @validates("email", "age")
+    def validate_email_or_age(self, key, value):
+        if key == "email" and "@" not in value:
+            raise ValueError ("This email is definitely not valid")
+        elif key == "age" and value <= 18:
+            raise ValueError ("You are underage")
+        return value
+    
+    @validates("bio")
+    def validate_bio(self, key, value):
+        if " AI " in value:
+            return "No useful bio"
+        return value
 
 
 class Course(db.Model):
